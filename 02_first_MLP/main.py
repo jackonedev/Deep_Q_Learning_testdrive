@@ -28,7 +28,7 @@ from pandapipe.pipelines.estimators import (
 from mlp_01_p2 import create_model as cm1
 from mlp_02_cm2 import create_model as cm2
 
-MODEL_NAME = "mlp_02_cm2"
+MODEL_NAME = "mlp_02_cm2_std"
 
 class SCALING(Enum):
     DEFAULT = "minmax"
@@ -38,10 +38,11 @@ class SCALING(Enum):
 
 
 DATA_STORAGE = "datasets/faults/data/"
-SCALER = SCALING.DEFAULT.value
+SCALER = SCALING.STANDARD.value
 VALIDATION_PROPORTION = 0.2
 TESTING_PROPORTION = 0.2
 random_state = 2024
+workers = 4
 
 EPOCHS = 1e3
 BATCH_SIZE = 64
@@ -161,6 +162,7 @@ def main():
         epochs=epochs,
         batch_size=batch_size,
         validation_data=(X_val, y_val),
+        workers=workers,
         callbacks=[tensorboard, early_stopping, model_checkpoint]
     )
     
