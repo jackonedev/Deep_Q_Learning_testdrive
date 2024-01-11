@@ -6,18 +6,26 @@ import random
 import time
 import os
 import pickle
-from collections import namedtuple
+from enum import Enum
+
 # from tqdm import tqdm
-from custom_train_test_split import custom_train_test_split
+import tensorflow as tf
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.callbacks import (
+    EarlyStopping,
+    ModelCheckpoint,
+    TensorBoard
+)
+
+from custom_train_test_split import custom_train_test_split
 from pandapipe.pipelines.estimators import (
     CustomOneHotEncoder,
     CustomScaler,
     CustomImputer
 )
-from sklearn.preprocessing import StandardScaler
-from enum import Enum
 
+from mlp_01_p2 import create_model
 
 class SCALING(Enum):
     DEFAULT = "minmax"
@@ -29,6 +37,10 @@ MODEL_NAME = "mlp_01_p2"
 DATA_STORAGE = "datasets/faults/data/"
 SCALER = SCALING.DEFAULT.value
 random_state = 2024
+dtime = int(time.time())
+MODELS_DIRNAME = f"models/{MODEL_NAME}_{dtime}"
+HISTORIES_DIRNAME = f"histories/{MODEL_NAME}_{dtime}"
+LOGS_DIR = f"logs/{MODEL_NAME}_{dtime}"
 
     
 if __name__ == "__main__":
@@ -48,10 +60,13 @@ if __name__ == "__main__":
     y = one_hot_target
     
     # Creating the sets
+    validation_size = 0.2
+    testing_size = 0.2
+    
     X_train, X_val, X_test, y_train, y_val, y_test = custom_train_test_split(
         X, y,
-        test_size=0.2,
-        val_size=0.2,
+        test_size=testing_size,
+        val_size=validation_size,
         random_state=random_state,
         verbose=True
     )    
@@ -92,22 +107,42 @@ if __name__ == "__main__":
         pickle.dump(test_tuple, f)
     
     
+    # Model creation and training
+    tf.keras.backend.clear_session()
     
+    n_input = X_train.shape[1]
+    n_hidden = 128
+    n_output = y_train.shape[1]
     
-# Environment variables
-
-# Instantiations of classes
-
-# Final variables
-
-# Main loop
-
-# Ensuring initial state
-
-# generating verbose steps
-
-# implementing some actions
-
-# breaking the step loop
-
-# saving the model
+    learning_rate = 0.01
+    momentum = 0.9
+    
+    epochs = 100
+    batch_size = 32
+    
+    model = create_model(
+        name=MODEL_NAME,
+        n_input=n_input,
+        n_hidden=n_hidden,
+        n_output=n_output,
+        lr=learning_rate,
+        mom=momentum
+    )
+    
+    tensorboard = TensorBoard(log_dir=LOGS_DIR)
+    
+    early_stopping = EarlyStopping(
+        monitor="val_loss",
+        patience=10,
+        verbose=1,
+        mode="min",
+        restore_best_weights=True
+    )
+    
+    model_checkpoint = ModelCheckpoint(
+        filepath=MODELS_DIRNAME + "/model_checkpoint.h5",
+        monitor="val_loss",
+        save_best_only=True,
+        verbose=1,
+        mode="min"
+    )
