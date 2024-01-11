@@ -3,8 +3,11 @@ from tensorflow.keras.layers import Dense, Dropout, InputLayer
 from tensorflow.keras.optimizers import SGD
 
 
+# N_HIDDEN = 128
+N_HIDDEN = 512
+
 # Multi Layer Perceptron
-def create_model(n_input, n_hidden, n_output, lr, mom, name):
+def create_model(n_input, n_output, lr, mom, name):
 
     model = Sequential(name=name)
 
@@ -14,7 +17,7 @@ def create_model(n_input, n_hidden, n_output, lr, mom, name):
 
 
     # Capa oculta 2
-    model.add(Dense(units=n_hidden, activation='relu', name='hidden_layer_2'))
+    model.add(Dense(units=N_HIDDEN, activation='relu', name='hidden_layer_2'))
     model.add(Dropout(0.33))
 
     # Capa de salida

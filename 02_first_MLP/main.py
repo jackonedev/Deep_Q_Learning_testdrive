@@ -25,7 +25,8 @@ from pandapipe.pipelines.estimators import (
     CustomImputer
 )
 
-from mlp_01_p2 import create_model
+from mlp_01_p2 import create_model as cm1
+from mlp_02_p2 import create_model as cm2
 
 class SCALING(Enum):
     DEFAULT = "minmax"
@@ -36,14 +37,22 @@ class SCALING(Enum):
 MODEL_NAME = "mlp_01_p2"
 DATA_STORAGE = "datasets/faults/data/"
 SCALER = SCALING.DEFAULT.value
+VALIDATION_PROPORTION = 0.2
+TESTING_PROPORTION = 0.2
 random_state = 2024
-dtime = int(time.time())
-MODELS_DIRNAME = f"models/{MODEL_NAME}_{dtime}"
-HISTORIES_DIRNAME = f"histories/{MODEL_NAME}_{dtime}"
-LOGS_DIR = f"logs/{MODEL_NAME}_{dtime}"
 
+EPOCHS = 1e3
+BATCH_SIZE = 32
+
+LEARNING_RATE = 0.01
+MOMENTUM = 0.9
+ 
+MODEL_BASE_NAME = f"{MODEL_NAME}_{int(EPOCHS)}x{BATCH_SIZE}_{int(time.time())}"
+MODELS_DIRNAME = f"models/{MODEL_BASE_NAME}.h5"
+HISTORIES_DIRNAME = f"histories/{MODEL_BASE_NAME}.pkl"
+LOGS_DIR = f"logs/{MODEL_BASE_NAME}"
     
-if __name__ == "__main__":
+def main():
     
     df = pd.read_csv("datasets/faults.csv")
 
@@ -60,15 +69,12 @@ if __name__ == "__main__":
     y = one_hot_target
     
     # Creating the sets
-    validation_size = 0.2
-    testing_size = 0.2
-    
     X_train, X_val, X_test, y_train, y_val, y_test = custom_train_test_split(
         X, y,
-        test_size=testing_size,
-        val_size=validation_size,
+        test_size=TESTING_PROPORTION,
+        val_size=VALIDATION_PROPORTION,
         random_state=random_state,
-        verbose=True
+        verbose=False
     )    
     
     # Scaling the data    
@@ -107,42 +113,73 @@ if __name__ == "__main__":
         pickle.dump(test_tuple, f)
     
     
-    # Model creation and training
+    # Model creation
     tf.keras.backend.clear_session()
     
     n_input = X_train.shape[1]
-    n_hidden = 128
-    n_output = y_train.shape[1]
+    n_output = y_val.shape[1]
     
-    learning_rate = 0.01
-    momentum = 0.9
+    learning_rate = LEARNING_RATE
+    momentum = MOMENTUM
     
-    epochs = 100
-    batch_size = 32
+    epochs = int(EPOCHS)
+    batch_size = int(BATCH_SIZE)
     
-    model = create_model(
+    model = cm2(
         name=MODEL_NAME,
         n_input=n_input,
-        n_hidden=n_hidden,
         n_output=n_output,
         lr=learning_rate,
         mom=momentum
     )
     
+    # Defining the callbacks
     tensorboard = TensorBoard(log_dir=LOGS_DIR)
     
     early_stopping = EarlyStopping(
         monitor="val_loss",
-        patience=10,
+        patience=15,
         verbose=1,
-        mode="min",
+        # mode="min",
         restore_best_weights=True
     )
     
     model_checkpoint = ModelCheckpoint(
-        filepath=MODELS_DIRNAME + "/model_checkpoint.h5",
+        filepath=MODELS_DIRNAME,
         monitor="val_loss",
         save_best_only=True,
         verbose=1,
         mode="min"
     )
+    
+    # Training the model
+    history = model.fit(
+        x=X_train,
+        y=y_train,
+        epochs=epochs,
+        batch_size=batch_size,
+        validation_data=(X_val, y_val),
+        callbacks=[tensorboard, early_stopping, model_checkpoint]
+    )
+    
+    # Saving the history
+    os.makedirs(HISTORIES_DIRNAME.split("/")[0], exist_ok=True)
+    
+    with open(HISTORIES_DIRNAME, "wb") as f:
+        pickle.dump(history.history, f)
+        
+
+if __name__ == "__main__":
+    
+    m = multiprocessing.Process(target=main)
+    
+    #start the program
+    m.start()   
+    #stop/terminate the program and release the resource
+    m.join()    
+    
+    # End the program
+    print("Done!")
+
+
+# TODO: create a RandomSearch for the hyperparameters
