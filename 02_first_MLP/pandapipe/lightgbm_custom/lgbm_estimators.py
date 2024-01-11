@@ -5,7 +5,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 
-class LGBMPredictor(BaseEstimator, TransformerMixin):
+class LGBMBooster(BaseEstimator, TransformerMixin):
     def __init__(self, params, val_data, y_val):
         self.params = params
         self.val_data = val_data
