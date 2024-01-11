@@ -1,1 +1,6 @@
 *CIFAR*
+models/*
+histories/*
+
+*.ipynb
+*_p1.py

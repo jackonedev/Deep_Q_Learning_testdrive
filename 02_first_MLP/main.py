@@ -6,18 +6,29 @@ import random
 import time
 import os
 import pickle
-from collections import namedtuple
+from enum import Enum
+
 # from tqdm import tqdm
-from custom_train_test_split import custom_train_test_split
+import tensorflow as tf
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.callbacks import (
+    EarlyStopping,
+    ModelCheckpoint,
+    TensorBoard
+)
+
+from custom_train_test_split import custom_train_test_split
 from pandapipe.pipelines.estimators import (
     CustomOneHotEncoder,
     CustomScaler,
     CustomImputer
 )
-from sklearn.preprocessing import StandardScaler
-from enum import Enum
 
+from mlp_01_p2 import create_model as cm1
+from mlp_02_cm2 import create_model as cm2
+
+MODEL_NAME = "mlp_02_cm2"
 
 class SCALING(Enum):
     DEFAULT = "minmax"
@@ -25,13 +36,25 @@ class SCALING(Enum):
     STANDARD = StandardScaler
 
 
-MODEL_NAME = "mlp_01_p2"
+
 DATA_STORAGE = "datasets/faults/data/"
 SCALER = SCALING.DEFAULT.value
+VALIDATION_PROPORTION = 0.2
+TESTING_PROPORTION = 0.2
 random_state = 2024
 
+EPOCHS = 1e3
+BATCH_SIZE = 64
+
+LEARNING_RATE = 0.0045
+MOMENTUM = 0.777
+ 
+MODEL_BASE_NAME = f"{MODEL_NAME}_{int(EPOCHS)}x{BATCH_SIZE}_{int(time.time())}"
+MODELS_DIRNAME = f"models/{MODEL_BASE_NAME}.h5"
+HISTORIES_DIRNAME = f"histories/{MODEL_BASE_NAME}.pkl"
+LOGS_DIR = f"logs/{MODEL_BASE_NAME}"
     
-if __name__ == "__main__":
+def main():
     
     df = pd.read_csv("datasets/faults.csv")
 
@@ -50,10 +73,10 @@ if __name__ == "__main__":
     # Creating the sets
     X_train, X_val, X_test, y_train, y_val, y_test = custom_train_test_split(
         X, y,
-        test_size=0.2,
-        val_size=0.2,
+        test_size=TESTING_PROPORTION,
+        val_size=VALIDATION_PROPORTION,
         random_state=random_state,
-        verbose=True
+        verbose=False
     )    
     
     # Scaling the data    
@@ -92,22 +115,73 @@ if __name__ == "__main__":
         pickle.dump(test_tuple, f)
     
     
+    # Model creation
+    tf.keras.backend.clear_session()
     
+    n_input = X_train.shape[1]
+    n_output = y_val.shape[1]
     
-# Environment variables
+    learning_rate = LEARNING_RATE
+    momentum = MOMENTUM
+    
+    epochs = int(EPOCHS)
+    batch_size = int(BATCH_SIZE)
+    
+    model = cm2(
+        name=MODEL_NAME,
+        n_input=n_input,
+        n_output=n_output,
+        lr=learning_rate,
+        mom=momentum
+    )
+    
+    # Defining the callbacks
+    tensorboard = TensorBoard(log_dir=LOGS_DIR)
+    
+    early_stopping = EarlyStopping(
+        monitor="val_loss",
+        patience=15,
+        verbose=1,
+        # mode="min",
+        restore_best_weights=True
+    )
+    
+    model_checkpoint = ModelCheckpoint(
+        filepath=MODELS_DIRNAME,
+        monitor="val_loss",
+        save_best_only=True,
+        verbose=1,
+        mode="min"
+    )
+    
+    # Training the model
+    history = model.fit(
+        x=X_train,
+        y=y_train,
+        epochs=epochs,
+        batch_size=batch_size,
+        validation_data=(X_val, y_val),
+        callbacks=[tensorboard, early_stopping, model_checkpoint]
+    )
+    
+    # Saving the history
+    os.makedirs(HISTORIES_DIRNAME.split("/")[0], exist_ok=True)
+    
+    with open(HISTORIES_DIRNAME, "wb") as f:
+        pickle.dump(history.history, f)
+        
 
-# Instantiations of classes
+if __name__ == "__main__":
+    
+    m = multiprocessing.Process(target=main)
+    
+    #start the program
+    m.start()   
+    #stop/terminate the program and release the resource
+    m.join()    
+    
+    # End the program
+    print("Done!")
 
-# Final variables
 
-# Main loop
-
-# Ensuring initial state
-
-# generating verbose steps
-
-# implementing some actions
-
-# breaking the step loop
-
-# saving the model
+# TODO: create a RandomSearch for the hyperparameters
