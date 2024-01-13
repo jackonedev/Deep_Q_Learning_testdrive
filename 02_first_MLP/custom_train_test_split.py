@@ -13,7 +13,7 @@ def custom_train_test_split(X, y, val_size=0.2, test_size=0.2, random_state=42, 
             X_1, X_2 = X.iloc[train_index], X.iloc[test_index]
             y_1, y_2 = y.iloc[train_index], y.iloc[test_index]
 
-    elif isinstance(X, type(np.array)) and isinstance(y, type(np.array)):
+    elif isinstance(X, np.ndarray) and isinstance(y, np.ndarray):
         for train_index, test_index in skf.split(X, y):
             X_1, X_2 = X[train_index], X[test_index]
             y_1, y_2 = y[train_index], y[test_index]
@@ -53,7 +53,7 @@ def custom_train_test_split(X, y, val_size=0.2, test_size=0.2, random_state=42, 
         assert isinstance(y_val, pd.DataFrame)
         assert isinstance(y_test, pd.DataFrame)
         return X_train, X_val, X_test, y_train, y_val, y_test
-    elif isinstance(X, type(np.array)) and isinstance(y, type(np.array)):
+    elif isinstance(X, np.ndarray) and isinstance(y, np.ndarray):
         X_train = X_train.values
         y_train = y_train.values
         return X_train, X_val, X_test, y_train, y_val, y_test
