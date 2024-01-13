@@ -35,8 +35,6 @@ class SCALING(Enum):
     NONE = None
     STANDARD = StandardScaler
 
-
-
 DATA_STORAGE = "datasets/faults/data/"
 SCALER = SCALING.STANDARD.value
 VALIDATION_PROPORTION = 0.2
@@ -81,7 +79,10 @@ def main():
     )    
     
     # Scaling the data    
-    if SCALER == SCALING.DEFAULT.value:
+    if SCALER == SCALING.NONE.value:
+        # In favor of DRY we should have a scaler that does nothing only for defining a "scaler"
+        pass
+    elif SCALER == SCALING.DEFAULT.value:
         scaler = CustomScaler()
         X_train = scaler.fit_transform(X_train)
         X_val = scaler.transform(X_val)
@@ -91,8 +92,6 @@ def main():
         X_train = scaler.fit_transform(X_train)
         X_val = scaler.transform(X_val)
         X_test = scaler.transform(X_test)
-    elif SCALER == SCALING.NONE.value:
-        pass
     
     
     # Saving the data
