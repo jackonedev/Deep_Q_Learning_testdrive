@@ -56,8 +56,8 @@ def create_models(X):
             model.add(Dense(layer_size))
             model.add(Activation("relu"))
             
-        model.add(Dense(1))
-        model.add(Activation("sigmoid"))
+        model.add(Dense(10))
+        model.add(Activation("softmax"))
         
         model.compile(
             loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
