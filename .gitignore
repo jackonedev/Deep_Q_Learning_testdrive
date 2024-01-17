@@ -1,6 +1,8 @@
 # Agregar AQUI archivos repoless
 
-
+logs/*
+models/*
+histories/*
 
 
 # Byte-compiled / optimized / DLL files

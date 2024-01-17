@@ -10,11 +10,17 @@ For the playlist about Deep Q Learning and for being so good explaining what you
 
 3) For deploying the container:
 
-docker build -t dql_test --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -f Dockerfile_gpu .
+docker build -t dql_test -f docker/Dockerfile_gpu .
 
 docker run --rm --net host --gpus all -it \
     -v $(pwd):/home/app/src \
     --workdir /home/app/src \
     dql_test \
+    bash
+
+docker run --rm --net host --gpus all -it \
+    -v $(pwd):/home/app/src \
+    --workdir /home/app/src \
+    sprint_04 \
     bash
 
