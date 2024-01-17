@@ -20,7 +20,7 @@ class DATASETS(Enum):
 DATASET = DATASETS.CIFAR10.value
 
 
-IMG_SIZE = 100 # Optional
+IMG_SIZE = "" # Still not set
 VALIDATION_PROPORTION = 0.2 # default
 TESTING_PROPORTION = 0.2 # default
 random_state = 2024
@@ -38,7 +38,7 @@ def check_random_image(image_batch, image_resize=None):
     plt.show()
 
     
-def main():
+def main(verbose=False):
     # Load the data
     if DATASET == DATASETS.MNIST.value:
         (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
@@ -67,6 +67,15 @@ def main():
     X_train = X_train.reshape(X_train.shape[0], *X.shape[1:])
     X_val = X_val.reshape(X_val.shape[0], *X.shape[1:])
     X_test = X_test.reshape(X_test.shape[0], *X.shape[1:])
+    
+    if verbose:
+        print("Shapes: ")
+        print(f"X_train.shape: {X_train.shape}")
+        print(f"X_val.shape: {X_val.shape}")
+        print(f"X_test.shape: {X_test.shape}")
+        print(f"y_train.shape: {y_train.shape}")
+        print(f"y_val.shape: {y_val.shape}")
+        print(f"y_test.shape: {y_test.shape}")
 
     # Saving the data
     os.makedirs(DATA_STORAGE, exist_ok=True)
@@ -75,7 +84,12 @@ def main():
     train_tuple = (X_train, y_train)
     val_tuple = (X_val, y_val)
     test_tuple = (X_test, y_test)
+    
+    # Save image dimentions
+    with open(DATA_STORAGE + "img_dim.pkl", "wb") as f:
+        pickle.dump(X.shape[1:], f)
 
+    # Save the data
     with open(DATA_STORAGE + "data_tuple.pkl", "wb") as f:
         pickle.dump(data_tuple, f)
 
@@ -87,9 +101,8 @@ def main():
 
     with open(DATA_STORAGE + "test_tuple.pkl", "wb") as f:
         pickle.dump(test_tuple, f)
-        
-
+    
 
 if __name__ == "__main__":
-    main()
+    main(verbose=True)
     
