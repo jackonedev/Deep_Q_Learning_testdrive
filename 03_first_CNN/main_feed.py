@@ -17,10 +17,9 @@ class DATASETS(Enum):
 
 
 
-DATASET = DATASETS.CIFAR10.value
+DATASET = DATASETS.MNIST.value
 
 
-IMG_SIZE = "" # Still not set
 VALIDATION_PROPORTION = 0.2 # default
 TESTING_PROPORTION = 0.2 # default
 random_state = 2024
@@ -63,10 +62,16 @@ def main(verbose=False):
                 random_state=random_state,
                 verbose=True
     )
-            
+    
+    # Reshaping the data       
     X_train = X_train.reshape(X_train.shape[0], *X.shape[1:])
     X_val = X_val.reshape(X_val.shape[0], *X.shape[1:])
     X_test = X_test.reshape(X_test.shape[0], *X.shape[1:])
+    
+    if len(X_train.shape) < 4:
+        X_train = np.expand_dims(X_train, axis=-1)
+        X_val = np.expand_dims(X_val, axis=-1)
+        X_test = np.expand_dims(X_test, axis=-1)
     
     if verbose:
         print("Shapes: ")
@@ -87,7 +92,11 @@ def main(verbose=False):
     
     # Save image dimentions
     with open(DATA_STORAGE + "img_dim.pkl", "wb") as f:
-        pickle.dump(X.shape[1:], f)
+        pickle.dump(X_train.shape[1:], f)
+
+    # Save the number of categories
+    with open(DATA_STORAGE + "n_categories.pkl", "wb") as f:
+        pickle.dump(len(np.unique(y)), f)
 
     # Save the data
     with open(DATA_STORAGE + "data_tuple.pkl", "wb") as f:

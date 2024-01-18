@@ -13,14 +13,14 @@ For the playlist about Deep Q Learning and for being so good explaining what you
 docker build -t dql_test -f docker/Dockerfile_gpu .
 
 docker run --rm --net host --gpus all -it \
-    -v $(pwd):/home/app/src \
-    --workdir /home/app/src \
+    -v %cd%:/home/app/src \
+    --workdir=/home/app/src \
     dql_test \
     bash
 
-docker run --rm --net host --gpus all -it \
-    -v $(pwd):/home/app/src \
-    --workdir /home/app/src \
+docker run --net host --gpus all -it \
+    -v $(PWD):/home/app/src \
+    --workdir=/home/app/src \
     sprint_04 \
     bash
 

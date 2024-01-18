@@ -28,9 +28,11 @@ class SCALERS(Enum):
 
 
 
-DENSE_LAYERS = [2]
+DENSE_LAYERS = [1]
 LAYER_SIZE = [64]
-CONV_LAYERS = [2]
+CONV_LAYERS = [1]
+
+N_CATEGORIES = pickle.load(open(DATA_STORAGE + "n_categories.pkl", "rb"))
 
 
 
@@ -127,7 +129,7 @@ def main(verbose=False):
         )
         
         # Saving the history
-        os.makedirs(HISTORIES_DIRNAME.split("/")[0], exist_ok=True)
+        os.makedirs("/".join(HISTORIES_DIRNAME.split("/")[:-1]), exist_ok=True)
     
         with open(HISTORIES_DIRNAME, "wb") as f:
             pickle.dump(history.history, f)

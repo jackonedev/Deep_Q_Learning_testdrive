@@ -8,10 +8,11 @@ from tensorflow.keras.layers import (
     MaxPooling2D
 )
 def get_params():
-    global DENSE_LAYERS, LAYER_SIZE, CONV_LAYERS, MODEL_NAME
+    global DENSE_LAYERS, LAYER_SIZE, CONV_LAYERS
+    global MODEL_NAME, N_CATEGORIES
 
     from main_train import DENSE_LAYERS, LAYER_SIZE, CONV_LAYERS
-    from main_train import MODEL_NAME
+    from main_train import MODEL_NAME, N_CATEGORIES
 
 
 
@@ -56,11 +57,13 @@ def create_models(X):
             model.add(Dense(layer_size))
             model.add(Activation("relu"))
             
-        model.add(Dense(10))
+        model.add(Dense(N_CATEGORIES))
         model.add(Activation("softmax"))
         
+        #TODO: Add optimizer and loss function as parameters
+        
         model.compile(
-            loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
+            loss="sparse_categorical_crossentropy", optimizer="adam", metrics=["accuracy"]
         )
         
         models[NAME] = model
