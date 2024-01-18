@@ -32,6 +32,7 @@ CATEGORIES = {
     8: "ship/boat",
     9: "truck"
 }#CIFAR10
+
 CATEGORIES = {
     0: "0",
     1: "1",
